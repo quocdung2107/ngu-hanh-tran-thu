@@ -1,0 +1,30 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: #0b111c; color: #e6eef7; }
+#topbar { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 8px 14px; background: #111c2b; border-bottom: 1px solid #2b4258; }
+#topbar h1 { font-size: 19px; margin: 0; }
+#resources { display: flex; gap: 14px; flex-wrap: wrap; flex: 1; }
+.res b { color: #fff; }
+main { display: flex; gap: 12px; padding: 12px; align-items: flex-start; }
+#stage { position: relative; }
+canvas { background: #0b111c; border: 1px solid #2b4258; border-radius: 8px; max-width: 100%; }
+#side { width: 350px; display: flex; flex-direction: column; gap: 10px; }
+.panel { background: #111c2b; border: 1px solid #2b4258; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; line-height: 1.55; }
+.panel h3 { margin: 0 0 6px; font-size: 15px; color: #ffd94a; }
+.panel button { display: block; width: 100%; text-align: left; margin: 5px 0; padding: 7px 9px; border-radius: 6px; border: 1px solid #3a5a7d; background: #1a2c44; color: #e6eef7; cursor: pointer; font-size: 13px; }
+.panel button small { display: block; color: #9db8d2; }
+.panel button:hover:not(:disabled) { background: #24405f; }
+.panel button:disabled { opacity: 0.45; cursor: not-allowed; }
+.panel button.primary { background: #2e7d32; border-color: #4caf50; text-align: center; font-weight: 600; }
+.panel button.danger { background: #6d2323; border-color: #a03a3a; }
+#speed-controls button { padding: 6px 10px; border-radius: 6px; border: 1px solid #3a5a7d; background: #1a2c44; color: #e6eef7; cursor: pointer; margin-left: 6px; }
+.ring-head { margin-top: 6px; font-weight: 600; }
+.recipe { padding: 3px 6px; border-left: 3px solid #3a5a7d; margin: 4px 0; background: rgba(255,255,255,0.03); }
+.recipe.unlocked { border-left-color: #ffd94a; }
+.warn { color: #ffb37a; }
+.dim { color: #9db8d2; }
+.msg { color: #ffd94a; }
+#overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(4,8,14,0.72); border-radius: 8px; }
+#overlay.hidden { display: none; }
+.overlay-card { background: #14243a; border: 1px solid #ffd94a; border-radius: 10px; padding: 22px 28px; text-align: center; max-width: 420px; }
+.overlay-card button { padding: 9px 18px; border-radius: 6px; border: 1px solid #4caf50; background: #2e7d32; color: #fff; cursor: pointer; font-size: 15px; }
+#hint { padding: 0 14px 12px; color: #9db8d2; font-size: 13px; }

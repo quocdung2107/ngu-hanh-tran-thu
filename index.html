@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ngũ Hành Trận Thủ — MVP</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header id="topbar">
+        <h1>⚖️ Ngũ Hành Trận Thủ</h1>
+        <div id="resources"></div>
+        <div id="speed-controls">
+          <button id="btn-pause">⏸ Tạm dừng</button>
+          <button id="btn-speed">Tốc độ: 1x</button>
+        </div>
+      </header>
+      <main>
+        <section id="stage">
+          <canvas id="game" width="760" height="560"></canvas>
+          <div id="overlay" class="hidden"></div>
+        </section>
+        <aside id="side">
+          <div class="panel" id="combat-info"></div>
+          <div class="panel" id="slot-info"></div>
+          <div class="panel" id="formation-info"></div>
+          <div class="panel" id="skills-info"></div>
+        </aside>
+      </main>
+      <footer id="hint">Giai đoạn xây dựng: bấm vào một ô trụ trên trận pháp để chọn, rồi chọn hệ để xây. Bấm “Bắt đầu đợt” khi sẵn sàng.</footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
