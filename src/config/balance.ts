@@ -10,24 +10,21 @@ export const ELEMENT_COLORS: Record<Element, string> = {
 };
 
 export const START_LINH_THACH = 200;
-export const START_TINH_PER_ELEMENT = 10;
+export const START_TINH_PER_ELEMENT = 15; // E4 cân bằng: 10 → 15 để đủ dựng trận đầu ván đa hệ
 
-export const RING_COUNT = 2;
-export const SLOTS_PER_RING = 5;
-export const RING_RADII: number[] = [2.0, 3.8]; // vòng 1 (trong), vòng 2 (ngoài)
-export const RING_NAMES: string[] = ['Vòng 1 (trong)', 'Vòng 2 (ngoài)'];
-
+// E2: hình học vòng/ô/cổng nằm trong config/maps.ts theo từng bản đồ — không còn hằng số 2 vòng ở đây.
 export const CENTER_HP = 300;
 export const CENTER_ATTACK_RANGE = 0.75; // quái tới khoảng cách này thì đánh trung tâm
 
 export const HERO = {
-  hp: 220,
+  hp: 240, // E4 cân bằng: 220 → 240 để nhân vật không gục sớm ở bản đồ lớn
   dmg: 12,
   range: 2.6,
   atkPerSec: 1.1,
   speed: 2.2,
   baseCritChance: 0.05,
-  baseArmor: 0,
+  baseArmor: 3, // E4 cân bằng: giáp cơ bản để nhân vật bớt mong manh ở bản đồ lớn
+  baseRegenPerSec: 0.6, // E4: hồi máu cơ bản nhỏ, Mộc cộng thêm
   baseDodge: 0,
   homeRadius: 6, // không rời trung tâm quá bán kính này
   manaMax: 100,
@@ -56,11 +53,24 @@ export const AOE_RADIUS_BONUS = 1.1; // bán kính AoE = bán kính vòng + giá
 // D4 — tầm bám của quái.
 export const AGGRO_RANGE = 1.1;
 
+// E1 — Tương sinh / tương khắc giữa hai trụ KỀ NHAU trong cùng một vòng.
+// Chuỗi tương sinh: Kim→Thủy→Mộc→Hỏa→Thổ→Kim (SINH_NEXT[a] = hệ mà a sinh ra).
+export const SINH_NEXT: Record<Element, Element> = {
+  kim: 'thuy', thuy: 'moc', moc: 'hoa', hoa: 'tho', tho: 'kim',
+};
+// Quan hệ tương khắc: KHAC[a] = hệ mà a khắc (Kim khắc Mộc, Mộc khắc Thổ,
+// Thổ khắc Thủy, Thủy khắc Hỏa, Hỏa khắc Kim).
+export const KHAC: Record<Element, Element> = {
+  kim: 'moc', moc: 'tho', tho: 'thuy', thuy: 'hoa', hoa: 'kim',
+};
+export const SINH_BONUS_PER_NEIGHBOR = 0.15; // mỗi phía kề tương sinh: +15% dmg (tối đa 2 phía = +30%)
+export const KHAC_ATTACKER_BONUS = 0.10;     // trụ khắc trụ kề: +10% dmg
+export const KHAC_VICTIM_PENALTY = 0.10;     // trụ bị khắc bởi trụ kề: −10% dmg
+
+// E1 — Linh Mạch: mỗi đợt có 1–2 ô được đánh dấu, trụ trên ô +25% sát thương trong đợt đó.
+export const LINH_MACH_MIN = 1;
+export const LINH_MACH_MAX = 2;
+export const LINH_MACH_DMG_BONUS = 0.25;
+
 export const TICK_RATE = 20; // sim tick cố định 20Hz
 export const SPAWN_DISTANCE = 7.6;
-export const GATES: Array<{ x: number; y: number; name: string }> = [
-  { x: 0, y: -SPAWN_DISTANCE, name: 'Bắc' },
-  { x: SPAWN_DISTANCE, y: 0, name: 'Đông' },
-  { x: 0, y: SPAWN_DISTANCE, name: 'Nam' },
-  { x: -SPAWN_DISTANCE, y: 0, name: 'Tây' },
-];

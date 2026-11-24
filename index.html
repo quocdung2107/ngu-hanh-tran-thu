@@ -12,20 +12,25 @@
         <h1>⚖️ Ngũ Hành Trận Thủ</h1>
         <div id="resources"></div>
         <div id="speed-controls">
+          <button id="btn-menu">🗺 Bản đồ</button>
           <button id="btn-pause">⏸ Tạm dừng</button>
           <button id="btn-speed">Tốc độ: 1x</button>
+          <button id="btn-mute" title="Bật/tắt âm thanh">🔊</button>
+          <label style="font-size:12px">Âm lượng <input id="vol" type="range" min="0" max="100" value="70" style="vertical-align:middle;width:90px"></label>
         </div>
       </header>
       <main>
         <section id="stage">
           <canvas id="game" width="760" height="560"></canvas>
           <div id="overlay" class="hidden"></div>
+          <div id="menu" class="hidden"></div>
         </section>
         <aside id="side">
           <div class="panel" id="combat-info"></div>
           <div class="panel" id="slot-info"></div>
           <div class="panel" id="formation-info"></div>
           <div class="panel" id="skills-info"></div>
+          <div class="panel" id="preset-info"></div>
         </aside>
       </main>
       <footer id="hint">Giai đoạn xây dựng: bấm vào một ô trụ trên trận pháp để chọn, rồi chọn hệ để xây. Bấm “Bắt đầu đợt” khi sẵn sàng.</footer>

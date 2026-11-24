@@ -1,8 +1,8 @@
-# Ngũ Hành Trận Thủ — MVP
+# Ngũ Hành Trận Thủ
 
-Game thủ thành tu tiên 2.5D isometric: xây trận pháp tròn đồng tâm gồm 2 vòng × 5 ô trụ ngũ hành (Kim/Mộc/Thủy/Hỏa/Thổ) quanh một trụ trung tâm, chống 5 đợt quái để mở khóa chiêu thức cho nhân vật.
+Game thủ thành tu tiên 2.5D isometric: xây trận pháp tròn đồng tâm nhiều vòng trụ ngũ hành (Kim/Mộc/Thủy/Hỏa/Thổ) quanh một trụ trung tâm, chống 8 đợt quái mỗi bản đồ để mở khóa chiêu thức cho nhân vật, qua chiến dịch 3 bản đồ.
 
-Dự án này tách riêng khỏi *Vạn Đạo Trường Sinh* và *Trận Pháp Nhân Quả*. Bản thiết kế gốc: `~/workspace/your_files/ngu-hanh-tran-thu/thiet-ke-MVP-ngu-hanh-tran-thu.md`.
+Dự án này tách riêng khỏi *Vạn Đạo Trường Sinh* và *Trận Pháp Nhân Quả*. Thiết kế: `docs/thiet-ke-mo-rong-sau-MVP.md` (lộ trình E1–E4) và bản thiết kế MVP gốc trong thư mục tài liệu của người dùng.
 
 ## Cách chạy
 
@@ -13,49 +13,67 @@ npm install     # cài thư viện (chỉ lần đầu)
 npm run dev     # mở địa chỉ Vite in ra (thường là http://localhost:5173)
 ```
 
-Muốn chơi nhanh không cần Terminal: mở file `preview/ngu-hanh-tran-thu-mvp.html` bằng trình duyệt (double-click).
-
-Các lệnh khác:
+Muốn chơi nhanh không cần Terminal: mở file `preview/ngu-hanh-tran-thu-mvp.html` bằng trình duyệt (double-click) — toàn bộ game đã gộp trong 1 file.
 
 ```bash
-npm test            # chạy test Vitest (logic: tài nguyên, công thức, AoE, rơi đồ, thắng/thua)
-npm run build       # kiểm tra TypeScript + build bản production vào dist/
+npm test            # chạy test Vitest (64 test: logic + cân bằng 3 bản đồ)
+npm run build       # kiểm tra TypeScript + build production vào dist/
 npm run make-preview  # sau khi build: gộp dist thành preview 1 file
 ```
 
 ## Cách chơi
 
-1. **Giai đoạn xây dựng:** bấm vào một ô trụ trên trận pháp → chọn hệ để xây (giá 40 Linh Thạch + 5 tinh cùng hệ; bắt đầu có 200 Linh Thạch + 10 tinh mỗi hệ). Bấm vào trụ đã xây để xem chỉ số hoặc phá hủy (**phá không hoàn tài nguyên**). Hệ của đợt quái sắp tới được báo trước để xếp trận có chủ đích.
-2. Bấm **Bắt đầu đợt** → giai đoạn chiến đấu: không xây/phá được nữa. Trụ tự đánh, nhân vật tự đánh quái gần nhất, tuyệt kỹ mỗi vòng tự nổ theo cooldown.
-3. Quái chết rơi Linh Thạch + tinh **đúng hệ của quái**. Hết đợt lại về giai đoạn xây dựng để chỉnh trận.
-4. **Thắng:** qua hết đợt 5. **Thua:** trung tâm HP = 0 hoặc nhân vật HP = 0. Màn hình kết quả hiện thống kê và nút Chơi lại.
-5. Nút ⏸ tạm dừng và nút tốc độ 1x/2x ở thanh trên cùng.
+1. **Chọn bản đồ** ở màn hình đầu (nút 🗺 Bản đồ để quay lại). Thắng bản đồ mở bản đồ kế tiếp; tiến độ lưu trong trình duyệt (localStorage).
+2. **Giai đoạn xây dựng:** bấm vào một ô trụ → chọn hệ để xây (giá gốc 40 Linh Thạch + 5 tinh cùng hệ; bắt đầu ván có 200 Linh Thạch + 15 tinh mỗi hệ). Bấm vào trụ đã xây để xem chỉ số, **nâng cấp** hoặc phá hủy (**phá không hoàn tài nguyên**). Hệ của đợt quái sắp tới được báo trước.
+3. Bấm **Bắt đầu đợt** → chiến đấu: không xây/phá/nâng được nữa. Trụ tự đánh, nhân vật tự đánh quái gần nhất, tuyệt kỹ mỗi vòng tự nổ theo cooldown. Quái chết rơi Linh Thạch + tinh **đúng hệ của quái**.
+4. **Thắng bản đồ:** qua hết 8 đợt (có boss ở đợt 8). **Thua:** trung tâm HP = 0 hoặc nhân vật HP = 0.
+5. Điều khiển phụ: ⏸ tạm dừng, tốc độ 1x/2x, 🔊 tắt/bật âm thanh + thanh âm lượng ở thanh trên cùng.
 
-## Cơ chế cốt lõi
+## Cơ chế theo giai đoạn phát triển
 
-- **Mỗi trụ đánh độc lập** với hiệu ứng riêng: Kim chí mạng ×2, Mộc trói 0.6s, Thủy chậm 30%, Hỏa nổ lan diện nhỏ, Thổ choáng 0.3s.
-- **Thuộc tính nhân vật** tăng theo số trụ đang sống mỗi hệ (Kim +DMG/crit, Mộc +hồi máu/max HP, Thủy +giáp/né, Hỏa +DMG kỹ năng, Thổ +max HP/giáp) — trụ bị phá thì mất phần cộng đó.
-- **Kỹ năng nhân vật:** bấm nút kỹ năng ở panel phải khi đủ mana và hết hồi chiêu. Mana tối đa 100, hồi 4/giây, bắt đầu đầy 100 *(giá trị do bản thiết kế để mở, chọn tại `src/config/balance.ts`)*. Chiêu đã mở khóa giữ vĩnh viễn trong ván.
+### MVP (nền tảng)
+- Mỗi trụ đánh độc lập với hiệu ứng riêng: Kim chí mạng ×2, Mộc trói 0.6s, Thủy chậm 30%, Hỏa nổ lan diện nhỏ, Thổ choáng 0.3s.
+- Thuộc tính nhân vật tăng theo số trụ đang sống mỗi hệ — trụ bị phá thì mất phần cộng.
+- **D1 — Công thức:** tính theo số lượng mỗi hệ **trong một vòng**, không tính thứ tự ô; một trụ tính cho mọi công thức của vòng đó. Đủ công thức → mở khóa kỹ năng **vĩnh viễn** trong ván. Mọi vòng đều dùng công thức yêu cầu tổng 5 trụ; vòng lớn (6/8 ô) có ô dự phòng để duy trì trận khi trụ bị phá.
+- **D2 — Tuyệt kỹ AoE của vòng:** cần ≥3 trụ đang sống mới chạy cooldown (dưới 3 thì **đóng băng**); tự nổ khi ≥3 quái trong bán kính vòng; sức mạnh 60%/80%/100% theo 3/4/≥5 trụ sống; mỗi vòng một cooldown và một tuyệt kỹ riêng (4 vòng = 4 tuyệt kỹ).
+- **D4 — Quái phá trụ:** quái đi thẳng về trung tâm, chỉ dừng đánh trụ khi trụ trong tầm bám 1.1 trên đường đi; nhân vật chỉ bị nhắm khi gần quái hơn trung tâm và không có trụ trong tầm bám.
 
-## Ba quy tắc đã duyệt (D1 / D2 / D4)
+### E1 — Tương Sinh Tương Khắc
+- **Tương sinh/khắc theo trụ KỀ NHAU trong vòng** (vẽ đường nối trên sân: vàng phát sáng = sinh, đỏ mờ = khắc): cặp tương sinh (chuỗi Kim→Thủy→Mộc→Hỏa→Thổ→Kim) cả hai trụ **+15% sát thương** mỗi phía kề (tối đa +30%); cặp tương khắc: trụ khắc **+10%**, trụ bị khắc **−10%**. Tính lại ngay khi trụ được xây/bị phá.
+- **Nâng cấp trụ tối đa cấp 3:** cấp 2 = ×1.6 sát thương, +50% HP, giá 60% giá xây; cấp 3 = ×2.5 sát thương, hiệu ứng phụ ×1.5, giá 120% giá xây. Chỉ nâng ở giai đoạn xây dựng.
+- **Vai trò quái:** Tốc (nhanh, yếu), Giáp (trâu, chủ động tìm phá trụ, sát thương lên trụ đã giảm còn ×1.2 sau cân bằng E4), Xa (dừng ở tầm 2.5 bắn trụ/trung tâm, không áp sát), Hồi (hồi 10 HP × hệ số đợt cho đồng minh quanh mỗi 2.5s, không hồi chính mình/boss). Xuất hiện dần: đợt 2 Tốc, 3 Giáp, 4 Xa, 6 Hồi.
+- **Boss đợt 8:** HP ×10 chỉ số đợt, to gấp đôi, miễn trói/choáng trong nửa đầu mỗi chu kỳ 4s, rơi 60 Linh Thạch + 12 tinh.
+- **Linh Mạch:** mỗi đợt 1–2 ô ngẫu nhiên được đánh dấu (hiện từ giai đoạn xây): trụ trên ô +25% sát thương trong đợt đó.
 
-- **D1 — Công thức:** tính theo số lượng mỗi hệ **trong một vòng**, không tính thứ tự ô; một trụ tính đồng thời cho mọi công thức của chính vòng đó, không tính sang vòng khác. Đủ công thức → mở khóa kỹ năng **vĩnh viễn**, trụ bị phá sau đó không mất chiêu.
-- **D2 — Tuyệt kỹ AoE của vòng:** cần ≥3 trụ đang sống mới chạy cooldown (dưới 3 trụ thì cooldown **đóng băng**); tự nổ khi có ≥3 quái trong bán kính vòng; sức mạnh 60%/80%/100% theo 3/4/5 trụ sống; mỗi vòng một cooldown riêng (Vòng 1: Ngũ Hành Lôi 45 dmg/CD 12s, Vòng 2: Thiên Địa Trấn 80 dmg + choáng 0.5s/CD 18s).
-- **D4 — Quái phá trụ:** quái đi thẳng về trung tâm, chỉ dừng đánh trụ khi trụ trong tầm bám 1.1 trên đường đi; nhân vật chỉ bị quái nhắm khi ở gần quái hơn trung tâm và không có trụ nào trong tầm bám.
+### E2 — Chiến dịch 3 bản đồ
+- **Bản đồ 1 — Sơn Môn:** 2 vòng (5+5 ô), 4 cổng, quái ×1.0 HP. **Bản đồ 2 — Linh Khê Cốc:** thêm vòng 3 (6 ô), 6 cổng, quái ×1.2 HP. **Bản đồ 3 — Hắc Phong Lâm:** thêm vòng 4 (8 ô), 6 cổng, quái ×1.2 HP, trung tâm có **2 lớp HP**: khiên ngoài 400 hứng đòn trước, cạn khiên mới trừ HP chính.
+- Vòng 3 có 5 công thức hỗn hợp + tuyệt kỹ Lục Hợp Chấn; vòng 4 có 5 công thức thuần hệ + tuyệt kỹ Vạn Pháp Quy Tông (tổng 20 kỹ năng nhân vật).
+- **Mã trận hình:** panel bên phải cho xuất mã (tự lưu làm mẫu của bản đồ) và nhập mã để dựng lại trận ở giai đoạn xây — thiếu tài nguyên thì xây phần đủ tiền và báo cáo số trụ bị bỏ qua. Định dạng `NH1.<mapId>.<thân mã>`, thân mã gồm 2 ký tự cho mỗi ô: chữ cái hệ (K/M/W/F/E) + số cấp, hoặc `..` nếu ô trống.
+
+### E3 — Tiến triển dài hạn
+- **Cây Đạo Ngộ 12 nút** (ở màn hình chọn bản đồ): thắng bản đồ lần đầu +2 điểm, thắng lại +1 điểm. Nút gồm: +100/+200 Linh Thạch đầu ván, +5 tinh/hệ đầu ván, giảm 20% giá trụ từng hệ (5 nút), +100 HP trung tâm, +1 ô Linh Mạch mỗi đợt, +40 HP nhân vật, tuyệt kỹ hồi chiêu nhanh hơn 15%. Không có nút tiên quyết. Hiệu ứng áp vào ván mới qua bộ sửa đổi (RunModifiers) — giảm giá áp cho cả xây và nâng cấp.
+- **Chế độ Vô Tận:** mở cho từng bản đồ sau khi thắng bản đồ đó. Sau đợt 8: mỗi đợt +5 quái, HP quái ×1.12 lũy tiến mỗi đợt, boss ở đợt chia hết cho 5. Kỷ lục đợt cao nhất theo bản đồ lưu local và hiện ở màn hình chọn bản đồ + màn hình kết quả.
+- **Click để di chuyển (tùy chọn, mặc định TẮT):** bật trong mục Cài đặt ở màn hình chọn bản đồ. Khi bật, bấm vào khoảng trống trên chiến trường để ra lệnh nhân vật đi tới điểm đó (bị kẹp trong bán kính hoạt động quanh trung tâm); nhân vật vẫn tự đánh quái trong tầm. Tắt thì nhân vật tự chiến đấu hoàn toàn như cũ.
+
+### E4 — Hoàn thiện & cân bằng
+- **Âm thanh tổng hợp WebAudio** (không file nhạc): mỗi hệ trụ một tiếng bắn riêng, tuyệt kỹ, xây/phá/nâng trụ, quái chết, trung tâm bị đánh, bắt đầu đợt, thắng/thua. Nút 🔊 + thanh âm lượng ở thanh trên, lưu vào cài đặt; âm thanh chỉ khởi tạo sau tương tác đầu tiên của người dùng và tự bỏ qua nếu trình duyệt không hỗ trợ.
+- **Hiệu ứng:** hạt bùng khi tuyệt kỹ nổ và khi Hỏa trụ nổ lan; tuyệt kỹ lớn có vòng sáng kép + quầng mờ; **rung màn hình** 0.25s khi trung tâm bị đánh; ô Linh Mạch nhấp nháy; quái vẽ theo vai trò (Giáp có khung khiên, Xa có vòng ngắm, Hồi có dấu +, Boss có vương miện và thanh máu vàng).
+- **Cân bằng cuối (số liệu đã chốt trong `src/config/`):** người chơi mẫu dùng tài nguyên thật (không bơm tiền, xếp chuỗi tương sinh, nâng cấp vòng trong trước) thắng cả 3 bản đồ — bản đồ 2 thắng với trung tâm còn 35/300 HP, bản đồ 3 thắng khi khiên 400 bị phá hết và tâm còn 142/300 (kiểm chứng tự động trong `tests/balance-maps.test.ts`). Các chỉnh chính: phần thưởng quái 8 Linh Thạch + 3 tinh; tinh khởi đầu 15/hệ; sát thương Giáp lên trụ ×1.2; HP quái đợt 6–8 tăng chậm hơn (×2.15/2.30/2.45); nhân vật 240 HP, 3 giáp cơ bản, hồi 0.6 HP/s; tầm đánh mọi trụ +0.2; boss ×10 HP.
 
 ## Cấu trúc mã
 
 ```
-src/config/  balance.ts (mọi hằng số), towers.ts, enemies.ts, waves.ts, recipes.ts, skills.ts
-src/sim/     state, resources, formation (D1/D2), towers, enemies (D4), hero, skills, waves, combat — thuần TS, không DOM
+src/config/  balance, towers, enemies, waves, recipes, skills, maps, daongo — MỌI chỉ số ở đây
+src/sim/     state (layout theo bản đồ), resources, formation (D1/D2 + sinh/khắc), towers,
+             enemies (D4 + vai trò), hero, skills, waves, combat, daongo, formationCode — thuần TS, không DOM
 src/render/  iso.ts (chiếu isometric), renderer.ts (Canvas 2D)
-src/ui/      hud.ts (HUD DOM tiếng Việt)
-src/main.ts  vòng lặp tick cố định 20Hz + render
-tests/       Vitest: resources, formation, combat, waves
+src/ui/      hud.ts, menu.ts (chọn bản đồ/Đạo Ngộ/cài đặt), audio.ts (WebAudio)
+src/persistence.ts  localStorage: tiến độ, preset, điểm Đạo Ngộ, kỷ lục, cài đặt (hàm thuần, có test)
+src/main.ts  vòng lặp tick cố định 20Hz + render + xả hàng đợi âm thanh
+tests/       Vitest: resources, formation, combat, waves, e1-synergy, e2-maps, e3-daongo, e4-polish, smoke, balance-maps
 ```
 
-Mọi chỉ số gameplay nằm trong `src/config/` — chỉnh cân bằng ở đó, không sửa logic.
+Sim không chứa DOM; localStorage chỉ được chạm qua `src/persistence.ts`; âm thanh đi qua hàng đợi sự kiện `state.sounds` để sim vẫn thuần dữ liệu.
 
-## Phạm vi MVP (không làm)
-
-3–5 vòng, nâng cấp trụ, boss, nhiều bản đồ/nhân vật, lưu game, multiplayer — xem Mục 11 của bản thiết kế.
+## Phạm vi (vẫn không làm)
+Multiplayer/PvP, gacha, cửa hàng tiền thật, tài khoản/cloud save, cốt truyện — theo Mục 6 của bản thiết kế mở rộng.

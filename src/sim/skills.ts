@@ -1,6 +1,6 @@
 import { SKILLS } from '../config/skills';
 import { computeHeroStats } from './hero';
-import { dist, type GameState } from './state';
+import { dist, tryRoot, tryStun, type GameState } from './state';
 
 /** Dùng kỹ năng nhân vật đã mở khóa: kiểm tra unlock + mana + cooldown. */
 export function castSkill(state: GameState, skillId: string): boolean {
@@ -27,6 +27,7 @@ export function castSkill(state: GameState, skillId: string): boolean {
 
   state.hero.mana -= def.manaCost;
   state.hero.cooldowns[skillId] = def.cooldown;
+  state.sounds.push('skill');
 
   if (def.kind === 'heal') {
     const stats = computeHeroStats(state);
@@ -43,8 +44,8 @@ export function castSkill(state: GameState, skillId: string): boolean {
       if (!e.alive) continue;
       if (dist(cx, cy, e.x, e.y) > def.radius) continue;
       e.hp -= dmg;
-      if (def.stunSec) e.stunUntil = Math.max(e.stunUntil, state.time + def.stunSec);
-      if (def.rootSec) e.rootUntil = Math.max(e.rootUntil, state.time + def.rootSec);
+      if (def.stunSec) tryStun(state, e, def.stunSec);
+      if (def.rootSec) tryRoot(state, e, def.rootSec);
       if (def.slowPct && def.slowSec) {
         e.slowPct = Math.max(e.slowPct, def.slowPct);
         e.slowUntil = state.time + def.slowSec;

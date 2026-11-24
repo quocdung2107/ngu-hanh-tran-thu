@@ -16,7 +16,8 @@ function rich() {
 
 function mkEnemy(s: ReturnType<typeof createGame>, x: number, y: number, hp = 500): Enemy {
   const e: Enemy = {
-    id: s.nextEnemyId++, element: 'hoa', x, y, hp, maxHp: hp, atkCd: 0,
+    id: s.nextEnemyId++, element: 'hoa', role: 'thuong', isBoss: false, x, y, hp, maxHp: hp,
+    speed: 0.55, dmg: 6, radius: 0.32, rewardLt: 6, rewardTinh: 2, atkCd: 0, healCd: 0,
     slowUntil: 0, slowPct: 0, rootUntil: 0, stunUntil: 0, rootCdUntil: 0, alive: true,
   };
   s.enemies.push(e);
@@ -83,8 +84,8 @@ describe('thuộc tính nhân vật theo số trụ sống', () => {
     let st = computeHeroStats(s);
     expect(st.dmg).toBe(12 + 6);
     expect(st.critChance).toBeCloseTo(0.05 + 0.02);
-    expect(st.maxHp).toBe(220 + 15);
-    expect(st.armor).toBe(2);
+    expect(st.maxHp).toBe(240 + 15);
+    expect(st.armor).toBe(3 + 2); // 3 giáp cơ bản + 2 từ trụ Thổ
     s.towers[0] = null; // Kim bị phá
     st = computeHeroStats(s);
     expect(st.dmg).toBe(12 + 3);

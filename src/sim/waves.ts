@@ -1,26 +1,27 @@
-import { TOTAL_WAVES, waveDef } from '../config/waves';
-import { ENEMY_BASE } from '../config/enemies';
+import { getWaveDef, spawnPlan } from '../config/waves';
 import { spawnEnemy } from './enemies';
 import { addDrop } from './resources';
-import { pickWaveElement, type GameState } from './state';
+import { pickWaveElement, rollLinhMach, type GameState } from './state';
 
 /** Bắt đầu đợt hiện tại (chỉ từ giai đoạn xây dựng). Hệ của đợt đã chọn trước. */
 export function startWave(state: GameState): boolean {
   if (state.phase !== 'build') return false;
-  const def = waveDef(state.wave);
-  state.toSpawn = def.count;
+  const def = getWaveDef(state.wave, state.endless);
+  state.spawnQueue = spawnPlan(def);
+  state.toSpawn = state.spawnQueue.length;
   state.spawnTimer = 0;
   state.phase = 'combat';
   return true;
 }
 
-/** Xử lý quái chết: rơi Linh Thạch + tinh đúng hệ của quái, cộng thống kê. */
+/** Xử lý quái chết: rơi Linh Thạch + tinh đúng hệ của quái (theo vai trò/boss), cộng thống kê. */
 export function collectDeaths(state: GameState): void {
   for (const e of state.enemies) {
     if (e.alive && e.hp <= 0) {
       e.alive = false;
+      state.sounds.push('death');
       state.stats.kills++;
-      addDrop(state, ENEMY_BASE.rewardLinhThach, e.element, ENEMY_BASE.rewardTinh);
+      addDrop(state, e.rewardLt, e.element, e.rewardTinh);
     }
   }
   state.enemies = state.enemies.filter((e) => e.alive);
@@ -37,25 +38,27 @@ export function checkWaveEnd(state: GameState): void {
     return;
   }
   if (state.toSpawn <= 0 && state.enemies.length === 0) {
-    if (state.wave >= TOTAL_WAVES) {
+    if (!state.endless && state.wave >= state.map.waves) {
       state.phase = 'won';
-      state.message = 'Đã giữ vững qua 5 đợt — thắng!';
+      state.message = `Đã giữ vững qua ${state.map.waves} đợt — thắng ${state.map.name}!`;
     } else {
       state.wave++;
       state.waveElement = pickWaveElement(state.rand); // chọn trước hệ đợt sau
+      state.linhMach = rollLinhMach(state.rand, state.towers.length, state.modifiers.extraLinhMach); // Linh Mạch mới cho đợt sau
       state.phase = 'build';
       state.message = `Qua đợt! Chuẩn bị đợt ${state.wave}.`;
     }
   }
 }
 
-/** Spawn quái theo nhịp của đợt. */
+/** Spawn quái theo nhịp của đợt, theo hàng đợi vai trò đã lập khi bắt đầu đợt. */
 export function updateSpawning(state: GameState, dt: number): void {
   if (state.toSpawn <= 0) return;
   state.spawnTimer -= dt;
   if (state.spawnTimer <= 0) {
-    spawnEnemy(state);
+    const kind = state.spawnQueue.shift() ?? 'thuong';
+    spawnEnemy(state, kind);
     state.toSpawn--;
-    state.spawnTimer = waveDef(state.wave).spawnInterval;
+    state.spawnTimer = getWaveDef(state.wave, state.endless).spawnInterval;
   }
 }

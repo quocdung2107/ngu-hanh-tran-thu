@@ -23,6 +23,18 @@ export const RECIPES: RecipeDef[] = [
   { id: 'r2-hoa', ring: 1, name: 'Phần Thiên Thuần Hỏa', requires: { hoa: 5 }, skillId: 'phanThienHoaVu' },
   { id: 'r2-thuy', ring: 1, name: 'Huyền Băng Thuần Thủy', requires: { thuy: 5 }, skillId: 'huyenBangPhongAn' },
   { id: 'r2-tho', ring: 1, name: 'Địa Mạch Thuần Thổ', requires: { tho: 5 }, skillId: 'diaLietTran' },
+  // E2 — Vòng 3 (6 ô, chỉ có ở bản đồ 2+) — hỗn hợp, vẫn yêu cầu tổng 5 trụ; ô thứ 6 là ô dự phòng.
+  { id: 'r3-hon-nguyen', ring: 2, name: 'Hỗn Nguyên Ngũ Hành', requires: { kim: 1, moc: 1, thuy: 1, hoa: 1, tho: 1 }, skillId: 'honNguyenTran' },
+  { id: 'r3-kim-thuy', ring: 2, name: 'Kim Thủy Hàn Kiếm', requires: { kim: 3, thuy: 2 }, skillId: 'kimThuyHanKiem' },
+  { id: 'r3-moc-hoa', ring: 2, name: 'Mộc Hỏa Dưỡng Sinh', requires: { moc: 3, hoa: 2 }, skillId: 'mocHoaDuongSinh' },
+  { id: 'r3-tho-thuy', ring: 2, name: 'Thổ Thủy An Định', requires: { tho: 3, thuy: 2 }, skillId: 'thoThuyAnDinh' },
+  { id: 'r3-hoa-kim', ring: 2, name: 'Hỏa Kim Phản Kích', requires: { hoa: 3, kim: 2 }, skillId: 'hoaKimPhanKich' },
+  // E2 — Vòng 4 (8 ô, chỉ có ở bản đồ 3) — thuần hệ, yêu cầu 5 trụ cùng hệ; 3 ô còn lại là dự phòng.
+  { id: 'r4-kim', ring: 3, name: 'Thái Bạch Thuần Kim', requires: { kim: 5 }, skillId: 'thaiBachTuyetKiem' },
+  { id: 'r4-moc', ring: 3, name: 'Thanh Mộc Thuần Sinh', requires: { moc: 5 }, skillId: 'thanhMocTruongTon' },
+  { id: 'r4-hoa', ring: 3, name: 'Cửu Thiên Thuần Hỏa', requires: { hoa: 5 }, skillId: 'cuuThienPhanThe' },
+  { id: 'r4-thuy', ring: 3, name: 'Thái Âm Thuần Thủy', requires: { thuy: 5 }, skillId: 'thaiAmDongKet' },
+  { id: 'r4-tho', ring: 3, name: 'Hỗn Nguyên Thuần Thổ', requires: { tho: 5 }, skillId: 'honNguyenDiaTrao' },
 ];
 
 export interface RingUltDef {
@@ -37,4 +49,6 @@ export interface RingUltDef {
 export const RING_ULTS: RingUltDef[] = [
   { ring: 0, name: 'Ngũ Hành Lôi', cooldown: 12, dmg: 45, stunSec: 0 },
   { ring: 1, name: 'Thiên Địa Trấn', cooldown: 18, dmg: 80, stunSec: 0.5 },
+  { ring: 2, name: 'Lục Hợp Chấn', cooldown: 16, dmg: 110, stunSec: 0 },
+  { ring: 3, name: 'Vạn Pháp Quy Tông', cooldown: 22, dmg: 160, stunSec: 0.8 },
 ];

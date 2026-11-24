@@ -8,16 +8,16 @@ export interface HeroStats {
   counts: Record<Element, number>;
 }
 
-/** Thuộc tính nhân vật suy từ số trụ ĐANG SỐNG mỗi hệ (cả 2 vòng). Trụ chết → mất phần cộng. */
+/** Thuộc tính nhân vật suy từ số trụ ĐANG SỐNG mỗi hệ (mọi vòng của bản đồ). Trụ chết → mất phần cộng. */
 export function computeHeroStats(state: GameState): HeroStats {
   const counts: Record<Element, number> = { kim: 0, moc: 0, thuy: 0, hoa: 0, tho: 0 };
-  for (let ring = 0; ring < 2; ring++) {
+  for (let ring = 0; ring < state.layout.rings.length; ring++) {
     const c = countElementsInRing(state, ring);
     for (const e of ELEMENTS) counts[e] += c[e];
   }
   const s: HeroStats = {
-    dmg: HERO.dmg, maxHp: HERO.hp, armor: HERO.baseArmor, critChance: HERO.baseCritChance,
-    dodge: HERO.baseDodge, hpRegenPerSec: 0, skillDmgMul: 1, counts,
+    dmg: HERO.dmg, maxHp: HERO.hp + state.modifiers.heroMaxHpBonus, armor: HERO.baseArmor, critChance: HERO.baseCritChance,
+    dodge: HERO.baseDodge, hpRegenPerSec: HERO.baseRegenPerSec, skillDmgMul: 1, counts,
   };
   for (const e of ELEMENTS) {
     const b = ELEMENT_STAT_BONUS[e];
@@ -51,6 +51,17 @@ export function damageHero(state: GameState, rawDmg: number): void {
   if (dmg > 0) state.hero.hp -= mitigate(stats.armor, dmg);
 }
 
+/** Di chuyển nhân vật về một điểm, kẹp trong bán kính hoạt động quanh trung tâm. */
+function moveHeroToward(state: GameState, tx: number, ty: number, dt: number): void {
+  const dx = tx - state.hero.x, dy = ty - state.hero.y;
+  const len = Math.hypot(dx, dy) || 1;
+  let nx = state.hero.x + (dx / len) * HERO.speed * dt;
+  let ny = state.hero.y + (dy / len) * HERO.speed * dt;
+  const dc = Math.hypot(nx, ny);
+  if (dc > HERO.homeRadius) { nx *= HERO.homeRadius / dc; ny *= HERO.homeRadius / dc; }
+  state.hero.x = nx; state.hero.y = ny;
+}
+
 /** Nhân vật tự áp sát và tấn công quái gần nhất, không rời tâm quá homeRadius. */
 export function updateHero(state: GameState, dt: number): void {
   const stats = computeHeroStats(state);
@@ -69,16 +80,18 @@ export function updateHero(state: GameState, dt: number): void {
     const d = dist(state.hero.x, state.hero.y, e.x, e.y);
     if (d < best) { best = d; target = e; }
   }
-  if (!target) return;
-  if (best > HERO.range) {
+  if (!target || best > HERO.range) {
+    // E3: có lệnh di chuyển bằng click → đi tới điểm đích (vẫn tự đánh nếu quái vào tầm, xử lý ở dưới khi có target trong tầm)
+    if (state.clickToMove && state.heroMoveTarget && (!target || best > HERO.range)) {
+      const mt = state.heroMoveTarget;
+      const d = dist(state.hero.x, state.hero.y, mt.x, mt.y);
+      if (d < 0.15) { state.heroMoveTarget = null; return; }
+      moveHeroToward(state, mt.x, mt.y, dt);
+      return;
+    }
+    if (!target) return;
     // di chuyển về phía quái nhưng không rời tâm quá homeRadius
-    const dx = target.x - state.hero.x, dy = target.y - state.hero.y;
-    const len = Math.hypot(dx, dy) || 1;
-    let nx = state.hero.x + (dx / len) * HERO.speed * dt;
-    let ny = state.hero.y + (dy / len) * HERO.speed * dt;
-    const dc = Math.hypot(nx, ny);
-    if (dc > HERO.homeRadius) { nx *= HERO.homeRadius / dc; ny *= HERO.homeRadius / dc; }
-    state.hero.x = nx; state.hero.y = ny;
+    moveHeroToward(state, target.x, target.y, dt);
     return;
   }
   if (state.hero.atkCd > 0) return;
@@ -86,6 +99,7 @@ export function updateHero(state: GameState, dt: number): void {
   let dmg = stats.dmg;
   if (state.rand() < stats.critChance) dmg *= 2;
   target.hp -= dmg;
+  state.sounds.push('attack:hero');
   state.projectiles.push({
     x1: state.hero.x, y1: state.hero.y, x2: target.x, y2: target.y,
     element: 'hero', ttl: 0.15, maxTtl: 0.15,

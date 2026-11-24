@@ -9,8 +9,8 @@ describe('tài nguyên khi xây/phá trụ', () => {
     const s = createGame(noRand);
     expect(buildTower(s, 0, 'kim')).toBe(true);
     expect(s.resources.linhThach).toBe(200 - 40);
-    expect(s.resources.tinh.kim).toBe(10 - 5);
-    expect(s.resources.tinh.hoa).toBe(10); // hệ khác không đổi
+    expect(s.resources.tinh.kim).toBe(15 - 5);
+    expect(s.resources.tinh.hoa).toBe(15); // hệ khác không đổi
   });
 
   it('không đủ tài nguyên thì từ chối và không trừ gì', () => {
@@ -19,10 +19,10 @@ describe('tài nguyên khi xây/phá trụ', () => {
     expect(buildTower(s, 0, 'moc')).toBe(false);
     expect(s.resources.linhThach).toBe(200);
     expect(s.towers[0]).toBeNull();
-    s.resources.tinh.moc = 10;
+    s.resources.tinh.moc = 15;
     s.resources.linhThach = 39;
     expect(buildTower(s, 0, 'moc')).toBe(false);
-    expect(s.resources.tinh.moc).toBe(10);
+    expect(s.resources.tinh.moc).toBe(15);
   });
 
   it('phá trụ hoàn trả 0 tài nguyên', () => {

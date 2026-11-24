@@ -15,6 +15,8 @@ export function tick(state: GameState, dt: number): void {
   state.aoeFx = state.aoeFx.filter((a) => a.ttl > 0);
   for (const f of state.floaters) { f.ttl -= dt; f.y -= dt * 0.7; }
   state.floaters = state.floaters.filter((f) => f.ttl > 0);
+  for (const pt of state.particles) { pt.ttl -= dt; pt.x += pt.vx * dt; pt.y += pt.vy * dt; pt.vx *= 0.92; pt.vy *= 0.92; }
+  state.particles = state.particles.filter((pt) => pt.ttl > 0);
 
   if (state.phase !== 'combat') return;
   updateSpawning(state, dt);

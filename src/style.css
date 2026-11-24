@@ -28,3 +28,17 @@ canvas { background: #0b111c; border: 1px solid #2b4258; border-radius: 8px; max
 .overlay-card { background: #14243a; border: 1px solid #ffd94a; border-radius: 10px; padding: 22px 28px; text-align: center; max-width: 420px; }
 .overlay-card button { padding: 9px 18px; border-radius: 6px; border: 1px solid #4caf50; background: #2e7d32; color: #fff; cursor: pointer; font-size: 15px; }
 #hint { padding: 0 14px 12px; color: #9db8d2; font-size: 13px; }
+#preset-info textarea { width: 100%; background: #0b111c; color: #e6eef7; border: 1px solid #3a5a7d; border-radius: 6px; padding: 6px; font-size: 12px; resize: vertical; }
+#menu { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; background: rgba(4,8,14,0.85); border-radius: 8px; padding: 18px; z-index: 5; }
+#menu.hidden { display: none; }
+.menu-card { max-width: 680px; width: 100%; }
+.menu-card h2 { color: #ffd94a; margin: 4px 0 8px; }
+.map-list { display: flex; flex-direction: column; gap: 10px; }
+.map-card { background: #14243a; border: 1px solid #2b4258; border-radius: 10px; padding: 12px 16px; }
+.map-card.locked { opacity: 0.6; }
+.map-card h3 { margin: 0 0 4px; color: #e6eef7; }
+.map-card p { margin: 3px 0; font-size: 13.5px; }
+.map-card button.primary { padding: 8px 16px; border-radius: 6px; border: 1px solid #4caf50; background: #2e7d32; color: #fff; cursor: pointer; font-size: 14px; margin-top: 6px; }
+.map-card button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.map-card button.endless { background: #5e35b1; border-color: #9575cd; margin-left: 8px; }
+#menu .panel button { display: inline-block; width: auto; margin-left: 8px; padding: 3px 10px; }
