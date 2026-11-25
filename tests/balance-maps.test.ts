@@ -85,6 +85,24 @@ function autoBuild(s: GameState): void {
 
 import { SKILLS } from '../src/config/skills';
 
+/**
+ * E6 — Người chơi mẫu BIẾT ĐI LẠI trên bản đồ lớn: trong chiến đấu, liên tục ra
+ * lệnh di chuyển tới điểm chặn nằm giữa tâm trận và quái gần tâm nhất (tối đa
+ * 9 đơn vị khỏi tâm), hết quái thì quay về tâm. Không còn đứng yên chờ quái —
+ * và cũng không đuổi theo quái ra tận cổng như hành vi tự đuổi mặc định.
+ */
+function roam(s: GameState): void {
+  let bx = 0, by = 0, bd = Infinity;
+  for (const e of s.enemies) {
+    const d = Math.hypot(e.x, e.y);
+    if (d < bd) { bd = d; bx = e.x; by = e.y; }
+  }
+  if (bd === Infinity) { s.heroMoveTarget = { x: 0.9, y: 0 }; return; }
+  const r = Math.min(9, bd * 0.55);
+  const k = bd > 0 ? r / bd : 0;
+  s.heroMoveTarget = { x: bx * k, y: by * k };
+}
+
 /** Ưu tiên hồi máu khi nhân vật hoặc trung tâm thấp máu, còn lại dùng chiêu sát thương đầu tiên sẵn sàng. */
 function smartCast(s: GameState): void {
   const heal = s.unlockedSkills.find((id) => SKILLS[id].kind === 'heal');
@@ -99,6 +117,7 @@ function playMap(mapId: string, seed: number) {
   while (s.phase !== 'won' && s.phase !== 'lost' && guard++ < 40) {
     if (s.phase === 'build') { autoBuild(s); startWave(s); }
     for (let i = 0; i < 20 * 120 && s.phase === 'combat'; i++) {
+      roam(s);
       tick(s, 1 / 20);
       smartCast(s);
     }

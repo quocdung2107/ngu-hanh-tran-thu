@@ -1,10 +1,11 @@
-import { HERO, TICK_RATE } from './config/balance';
+import { TICK_RATE } from './config/balance';
 import { FIELD, FIELD_SKILLS } from './config/field';
 import { MAPS, mapById } from './config/maps';
 import { render } from './render/renderer';
 import { renderField, fieldScreenToWorld } from './render/fieldRenderer';
-import { setOrigin, toWorld, TILE_H, TILE_W } from './render/iso';
+import { setOrigin, setOriginForCamera, toWorld, TILE_H, TILE_W } from './render/iso';
 import { castFieldSkill, createFieldGame, tickField, type FieldState } from './sim/field';
+import { clampToWorld, returnHeroToCenter } from './sim/hero';
 import { createGame, slotPos, type GameState } from './sim/state';
 import { tick } from './sim/combat';
 import { buildTower, destroyTowerByPlayer, upgradeTower } from './sim/towers';
@@ -37,13 +38,13 @@ let winRecorded = false;
 let mode: 'defense' | 'field' = 'defense';
 let field: FieldState = createFieldGame(Math.random);
 const hintEl = document.getElementById('hint')!;
-const HINT_DEFENSE = hintEl.textContent;
 const HINT_FIELD = 'Dã Chiến: WASD / phím mũi tên để chạy, click chuột để ra lệnh di chuyển. Nhân vật tự bắn loạt đạn vào bầy quái — sống sót 5 phút là thắng. Phím 1/2/3 dùng kỹ năng.';
+const HINT_DEFENSE_E6 = 'Thủ trận (E6 — bản đồ lớn): WASD / phím mũi tên hoặc click chuột để nhân vật đi lại tự do khắp bản đồ, camera bám theo nhân vật. Phím T (hoặc nút 🎯 Về tâm trận) để quay về trận pháp ở tâm bản đồ. Xây/phá trụ ở giai đoạn xây dựng như cũ.';
 
 function setModeUi(): void {
   document.getElementById('side')!.style.display = mode === 'defense' ? '' : 'none';
   document.getElementById('field-side')!.style.display = mode === 'field' ? 'flex' : 'none';
-  hintEl.textContent = mode === 'field' ? HINT_FIELD : HINT_DEFENSE;
+  hintEl.textContent = mode === 'field' ? HINT_FIELD : HINT_DEFENSE_E6;
 }
 
 function startRun(mapId: string, endless = false): void {
@@ -90,6 +91,7 @@ const hud = new Hud({
   onUpgrade: (slot) => { if (upgradeTower(state, slot)) sound.play('upgrade'); hud.update(state); },
   onStartWave: () => { if (startWave(state)) sound.play('waveStart'); hud.update(state); },
   onCastSkill: (skillId) => { castSkill(state, skillId); hud.update(state); },
+  onReturnCenter: () => { returnHeroToCenter(state); hud.update(state); },
   onRestart: () => { startRun(state.map.id, state.endless); },
   onExportPreset: () => {
     const code = encodeFormation(state);
@@ -109,14 +111,19 @@ const fieldHud = new FieldHud({
   onRestart: () => { startFieldRun(); },
 });
 
-// E5: phím di chuyển (WASD/mũi tên) + phím kỹ năng 1/2/3 cho Dã Chiến
+// E5+E6: phím di chuyển (WASD/mũi tên) dùng cho CẢ hai chế độ;
+// Dã Chiến thêm phím kỹ năng 1/2/3, thủ trận thêm phím T = về tâm trận.
 const keysDown = new Set<string>();
 window.addEventListener('keydown', (ev) => {
-  if (mode !== 'field') return;
   if (ev.code.startsWith('Arrow')) ev.preventDefault();
   keysDown.add(ev.code);
-  const idx = ['Digit1', 'Digit2', 'Digit3'].indexOf(ev.code);
-  if (idx >= 0 && FIELD_SKILLS[idx]) castFieldSkill(field, FIELD_SKILLS[idx].id);
+  if (mode === 'field') {
+    const idx = ['Digit1', 'Digit2', 'Digit3'].indexOf(ev.code);
+    if (idx >= 0 && FIELD_SKILLS[idx]) castFieldSkill(field, FIELD_SKILLS[idx].id);
+  } else if (ev.code === 'KeyT') {
+    returnHeroToCenter(state);
+    hud.update(state);
+  }
 });
 window.addEventListener('keyup', (ev) => { keysDown.delete(ev.code); });
 window.addEventListener('blur', () => keysDown.clear());
@@ -174,6 +181,8 @@ canvas.addEventListener('click', (ev) => {
     };
     return;
   }
+  // E6: đổi tọa độ click qua đúng phép chiếu của camera hiện tại (khớp renderer)
+  setOriginForCamera(canvas.width, canvas.height, state.camera.x, state.camera.y);
   const w = toWorld(sx, sy);
   let best = -1; let bestD = 0.65;
   for (let i = 0; i < state.towers.length; i++) {
@@ -182,11 +191,10 @@ canvas.addEventListener('click', (ev) => {
     if (d < bestD) { bestD = d; best = i; }
   }
   hud.selectedSlot = best;
-  // E3: click vào khoảng trống (không trúng ô trụ) = lệnh di chuyển khi bật click-to-move
-  if (best < 0 && state.clickToMove) {
-    const d = Math.hypot(w.x, w.y);
-    const k = d > HERO.homeRadius ? HERO.homeRadius / d : 1;
-    state.heroMoveTarget = { x: w.x * k, y: w.y * k };
+  // E6: click vào khoảng trống (không trúng ô trụ) = lệnh di chuyển, luôn bật
+  // như Dã Chiến, đích kẹp trong biên bản đồ (không còn kẹp bán kính quanh tâm).
+  if (best < 0) {
+    state.heroMoveTarget = clampToWorld(state, w.x, w.y);
   }
   hud.update(state);
 });
@@ -231,6 +239,7 @@ function frame(now: number): void {
   const dtReal = Math.min(0.1, (now - last) / 1000);
   last = now;
   if (mode === 'field') field.hero.input = keysToWorldInput();
+  else state.heroInput = keysToWorldInput();
   if (!paused) {
     acc += dtReal * speed;
     const step = 1 / TICK_RATE;

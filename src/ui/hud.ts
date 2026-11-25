@@ -17,6 +17,7 @@ export interface HudCallbacks {
   onUpgrade: (slot: number) => void;
   onStartWave: () => void;
   onCastSkill: (skillId: string) => void;
+  onReturnCenter: () => void; // E6: nút "Về tâm trận" (phím T)
   onRestart: () => void;
   onExportPreset: () => string;
   onImportPreset: (code: string) => string;
@@ -39,6 +40,7 @@ export class Hud {
       if (el.closest('[data-destroy]')) { this.cb.onDestroy(Number((el.closest('[data-destroy]') as HTMLElement).dataset.slot)); return; }
       if (el.closest('[data-upgrade]')) { this.cb.onUpgrade(Number((el.closest('[data-upgrade]') as HTMLElement).dataset.slot)); return; }
       if (el.closest('[data-start-wave]')) { this.cb.onStartWave(); return; }
+      if (el.closest('[data-return-center]')) { this.cb.onReturnCenter(); return; }
       const cast = el.closest('[data-cast]') as HTMLElement | null;
       if (cast) { this.cb.onCastSkill(cast.dataset.cast!); return; }
       if (el.closest('[data-restart]')) { this.cb.onRestart(); return; }
@@ -111,6 +113,7 @@ export class Hud {
       <div>Ô Linh Mạch đợt này: <b>${state.linhMach.map((i) => `Ô ${i + 1}`).join(', ') || '—'}</b> <span class="dim">(trụ trên ô +25% sát thương)</span></div>
       ${state.message ? `<div class="msg">${state.message}</div>` : ''}
       ${state.phase === 'build' ? `<button class="primary" data-start-wave>▶ Bắt đầu đợt ${state.wave} (quái hệ ${ELEMENT_NAMES[state.waveElement]})</button>` : ''}
+      <button data-return-center>🎯 Về tâm trận (phím T)</button>
     `;
   }
 

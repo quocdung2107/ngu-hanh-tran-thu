@@ -1,7 +1,7 @@
 // Khung chỉ số quái chung cho cả 5 hệ — khác nhau ở hệ (màu + tinh rơi đúng hệ).
 export const ENEMY_BASE = {
   hp: 55,
-  speed: 0.55,
+  speed: 1.1, // E6 cân bằng: 0.55 → 1.1 — bản đồ lớn (spawn ở biên, hành quân 30–40 đơn vị) cần tốc độ gấp đôi để đợt không kéo dài và quái dồn tới đủ dày như sân khấu cũ
   dmg: 6,
   atkPerSec: 1.0,
   rewardLinhThach: 8,

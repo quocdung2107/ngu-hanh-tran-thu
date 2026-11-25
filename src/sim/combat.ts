@@ -1,6 +1,7 @@
+import { updateDefenseCamera } from './camera';
 import { updateRingUlts } from './formation';
 import { updateEnemies } from './enemies';
-import { updateHero } from './hero';
+import { updateHero, updateHeroMovement } from './hero';
 import { updateTowers } from './towers';
 import { checkWaveEnd, collectDeaths, updateSpawning } from './waves';
 import type { GameState } from './state';
@@ -18,6 +19,13 @@ export function tick(state: GameState, dt: number): void {
   for (const pt of state.particles) { pt.ttl -= dt; pt.x += pt.vx * dt; pt.y += pt.vy * dt; pt.vx *= 0.92; pt.vy *= 0.92; }
   state.particles = state.particles.filter((pt) => pt.ttl > 0);
 
+  // E6: giai đoạn xây dựng — nhân vật vẫn đi lại tự do trên bản đồ lớn (chỉ di
+  // chuyển, không hồi phục/đánh đấm) và camera bám theo.
+  if (state.phase === 'build') {
+    updateHeroMovement(state, dt, false);
+    updateDefenseCamera(state, dt);
+    return;
+  }
   if (state.phase !== 'combat') return;
   updateSpawning(state, dt);
   updateEnemies(state, dt);
@@ -26,4 +34,5 @@ export function tick(state: GameState, dt: number): void {
   updateRingUlts(state, dt);
   collectDeaths(state);
   checkWaveEnd(state);
+  updateDefenseCamera(state, dt);
 }

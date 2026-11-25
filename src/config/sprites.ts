@@ -27,7 +27,7 @@ export type LayerName = keyof typeof LAYERS;
 /** Thứ tự lớp theo tên, từ dưới lên trên — đúng thứ tự trong LAYERS. */
 export const LAYER_ORDER: LayerName[] = ['ground', 'groundFx', 'shadow', 'entity', 'projectile', 'fx'];
 
-export type SpriteShape = 'hero' | 'blob' | 'gem' | 'orb' | 'tile';
+export type SpriteShape = 'hero' | 'blob' | 'gem' | 'orb' | 'tile' | 'tower' | 'center';
 
 export interface SpriteImageEntry {
   src: string;      // đường dẫn/URL của file ảnh
@@ -67,6 +67,14 @@ export const SPRITE_MANIFEST: Record<string, SpriteDef> = {
 for (const e of ELEMENT_LIST) {
   SPRITE_MANIFEST[`enemy-${e}`] = blob(ELEMENT_COLORS[e]);
   SPRITE_MANIFEST[`elite-${e}`] = blob(ELEMENT_COLORS[e]);
+  // E6: trụ thủ trận có spriteId riêng theo hệ + trung tâm trận pháp
+  SPRITE_MANIFEST[`tower-${e}`] = { shape: 'tower', color: ELEMENT_COLORS[e] };
+}
+SPRITE_MANIFEST['center'] = { shape: 'center', color: '#8e6fd8' };
+
+/** spriteId của trụ theo hệ (E6 — renderer thủ trận tra registry như Dã Chiến). */
+export function towerSpriteId(element: Element): string {
+  return `tower-${element}`;
 }
 
 /** spriteId của quái theo hệ + loại (thường / tinh anh / boss). */

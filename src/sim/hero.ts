@@ -1,4 +1,5 @@
-import { ELEMENTS, ELEMENT_STAT_BONUS, HERO, type Element } from '../config/balance';
+import { ELEMENTS, ELEMENT_STAT_BONUS, HERO, HERO_WORLD_MARGIN, type Element } from '../config/balance';
+import { defenseCameraTarget } from './camera';
 import { countElementsInRing } from './formation';
 import { dist, type GameState } from './state';
 
@@ -51,18 +52,76 @@ export function damageHero(state: GameState, rawDmg: number): void {
   if (dmg > 0) state.hero.hp -= mitigate(stats.armor, dmg);
 }
 
-/** Di chuyển nhân vật về một điểm, kẹp trong bán kính hoạt động quanh trung tâm. */
+/** E6: kẹp một điểm trong biên bản đồ của ván (tâm (0,0), cạnh map.worldSize). */
+export function clampToWorld(state: GameState, x: number, y: number): { x: number; y: number } {
+  const h = state.map.worldSize / 2 - HERO_WORLD_MARGIN;
+  return { x: Math.min(h, Math.max(-h, x)), y: Math.min(h, Math.max(-h, y)) };
+}
+
+/** Di chuyển nhân vật về một điểm, kẹp ở biên bản đồ (E6: không còn bán kính hoạt động quanh tâm). */
 function moveHeroToward(state: GameState, tx: number, ty: number, dt: number): void {
   const dx = tx - state.hero.x, dy = ty - state.hero.y;
   const len = Math.hypot(dx, dy) || 1;
-  let nx = state.hero.x + (dx / len) * HERO.speed * dt;
-  let ny = state.hero.y + (dy / len) * HERO.speed * dt;
-  const dc = Math.hypot(nx, ny);
-  if (dc > HERO.homeRadius) { nx *= HERO.homeRadius / dc; ny *= HERO.homeRadius / dc; }
-  state.hero.x = nx; state.hero.y = ny;
+  const step = Math.min(len, HERO.speed * dt);
+  const p = clampToWorld(state, state.hero.x + (dx / len) * step, state.hero.y + (dy / len) * step);
+  state.hero.x = p.x; state.hero.y = p.y;
 }
 
-/** Nhân vật tự áp sát và tấn công quái gần nhất, không rời tâm quá homeRadius. */
+function nearestEnemy(state: GameState): { target: (typeof state.enemies)[number] | null; best: number } {
+  let target = null as null | (typeof state.enemies)[number];
+  let best = Infinity;
+  for (const e of state.enemies) {
+    if (!e.alive) continue;
+    const d = dist(state.hero.x, state.hero.y, e.x, e.y);
+    if (d < best) { best = d; target = e; }
+  }
+  return { target, best };
+}
+
+/**
+ * E6 — Di chuyển nhân vật (dùng cho cả 2 giai đoạn):
+ * 1) Phím WASD/mũi tên (heroInput) — ưu tiên cao nhất, xóa đích click.
+ * 2) Đích click-to-move (heroMoveTarget) — luôn bật ở thủ trận.
+ * 3) Khi `chase` = true (giai đoạn chiến đấu): tự áp sát quái gần nhất ngoài tầm đánh.
+ */
+export function updateHeroMovement(state: GameState, dt: number, chase: boolean): void {
+  const inp = state.heroInput;
+  const len = Math.hypot(inp.x, inp.y);
+  if (len > 0.01) {
+    const p = clampToWorld(
+      state,
+      state.hero.x + (inp.x / len) * HERO.speed * dt,
+      state.hero.y + (inp.y / len) * HERO.speed * dt,
+    );
+    state.hero.x = p.x; state.hero.y = p.y;
+    state.heroMoveTarget = null;
+    return;
+  }
+  if (state.heroMoveTarget) {
+    const mt = state.heroMoveTarget;
+    if (dist(state.hero.x, state.hero.y, mt.x, mt.y) < 0.15) { state.heroMoveTarget = null; return; }
+    moveHeroToward(state, mt.x, mt.y, dt);
+    return;
+  }
+  if (chase) {
+    const { target, best } = nearestEnemy(state);
+    if (target && best > HERO.range) moveHeroToward(state, target.x, target.y, dt);
+  }
+}
+
+/** E6 — "Về tâm trận" (phím T / nút HUD): dịch chuyển nhân vật về tâm trận và kéo camera theo ngay. */
+export function returnHeroToCenter(state: GameState): void {
+  state.hero.x = 0.9; state.hero.y = 0;
+  state.heroMoveTarget = null;
+  const t = defenseCameraTarget(state);
+  state.camera.x = t.x; state.camera.y = t.y;
+}
+
+/**
+ * Nhân vật trong giai đoạn chiến đấu: hồi phục/mana/cooldown, di chuyển tự do
+ * toàn bản đồ (updateHeroMovement), và tự tấn công quái gần nhất trong tầm —
+ * kể cả khi đang di chuyển (E6).
+ */
 export function updateHero(state: GameState, dt: number): void {
   const stats = computeHeroStats(state);
   // hồi máu (Mộc) + mana
@@ -73,27 +132,10 @@ export function updateHero(state: GameState, dt: number): void {
   }
   state.hero.atkCd -= dt;
 
-  let target = null as null | (typeof state.enemies)[number];
-  let best = Infinity;
-  for (const e of state.enemies) {
-    if (!e.alive) continue;
-    const d = dist(state.hero.x, state.hero.y, e.x, e.y);
-    if (d < best) { best = d; target = e; }
-  }
-  if (!target || best > HERO.range) {
-    // E3: có lệnh di chuyển bằng click → đi tới điểm đích (vẫn tự đánh nếu quái vào tầm, xử lý ở dưới khi có target trong tầm)
-    if (state.clickToMove && state.heroMoveTarget && (!target || best > HERO.range)) {
-      const mt = state.heroMoveTarget;
-      const d = dist(state.hero.x, state.hero.y, mt.x, mt.y);
-      if (d < 0.15) { state.heroMoveTarget = null; return; }
-      moveHeroToward(state, mt.x, mt.y, dt);
-      return;
-    }
-    if (!target) return;
-    // di chuyển về phía quái nhưng không rời tâm quá homeRadius
-    moveHeroToward(state, target.x, target.y, dt);
-    return;
-  }
+  updateHeroMovement(state, dt, true);
+
+  const { target, best } = nearestEnemy(state);
+  if (!target || best > HERO.range) return;
   if (state.hero.atkCd > 0) return;
   state.hero.atkCd = 1 / HERO.atkPerSec;
   let dmg = stats.dmg;

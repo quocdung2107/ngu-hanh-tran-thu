@@ -74,7 +74,7 @@ export class Menu {
         <div class="panel" style="margin-bottom:10px">${nodes}</div>
         <h2>⚙ Cài đặt</h2>
         <div class="panel">
-          <label><input type="checkbox" id="setting-click-to-move" ${progress.settings.clickToMove ? 'checked' : ''}> Click để ra lệnh di chuyển cho nhân vật (mặc định tắt: nhân vật tự chiến đấu hoàn toàn). Khi bật, bấm vào khoảng trống trên chiến trường để nhân vật đi tới đó — nhân vật vẫn tự đánh quái trong tầm.</label>
+          <p style="margin:0">🕹 Di chuyển nhân vật (E6): trong chế độ thủ trận, <b>WASD/phím mũi tên và click ra lệnh di chuyển luôn bật</b> như Dã Chiến — nhân vật đi tự do khắp bản đồ lớn, camera bám theo, phím <b>T</b> để về tâm trận. Nhân vật vẫn tự đánh quái trong tầm. (Công tắc click-to-move của E3 đã được gộp vào điều khiển chung này.)</p>
         </div>
       </div>`;
   }

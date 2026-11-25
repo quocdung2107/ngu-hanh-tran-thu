@@ -6,6 +6,18 @@ export let ORIGIN_Y = 250;
 
 export function setOrigin(x: number, y: number): void { ORIGIN_X = x; ORIGIN_Y = y; }
 
+/**
+ * E6 — Đặt gốc chiếu sao cho điểm thế giới (camX, camY) nằm đúng giữa canvas.
+ * Renderer thủ trận gọi mỗi frame theo camera; main gọi trước khi đổi
+ * tọa độ click (screen→world) để phép chọn ô khớp với khung hình đang vẽ.
+ */
+export function setOriginForCamera(canvasW: number, canvasH: number, camX: number, camY: number): void {
+  setOrigin(
+    canvasW / 2 - (camX - camY) * (TILE_W / 2),
+    canvasH / 2 - (camX + camY) * (TILE_H / 2),
+  );
+}
+
 export function toScreen(x: number, y: number): { sx: number; sy: number } {
   return {
     sx: ORIGIN_X + (x - y) * (TILE_W / 2),

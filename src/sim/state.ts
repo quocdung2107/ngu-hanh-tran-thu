@@ -86,8 +86,10 @@ export interface GameState {
   gates: Array<{ x: number; y: number; name: string }>;
   endless: boolean;               // E3: chế độ Vô Tận (không có đợt cuối)
   modifiers: RunModifiers;        // E3: hiệu ứng Đạo Ngộ áp vào ván
-  clickToMove: boolean;           // E3: bật điều khiển di chuyển bằng click
+  clickToMove: boolean;           // E3: công tắc cài đặt (E6: click-to-move luôn bật ở thủ trận, giữ trường này để tương thích lưu trữ)
   heroMoveTarget: { x: number; y: number } | null;
+  heroInput: { x: number; y: number }; // E6: hướng phím WASD/mũi tên do main ghi mỗi frame (sim chuẩn hóa)
+  camera: { x: number; y: number };    // E6: tâm khung nhìn của camera bám nhân vật (tọa độ thế giới)
   endlessRecord: number;          // E3: kỷ lục Vô Tận của bản đồ khi vào ván
   resources: { linhThach: number; tinh: Record<Element, number> };
   towers: (Tower | null)[]; // index theo layout (xem slotIndex/slotPos)
@@ -193,6 +195,8 @@ export function createGame(rand: () => number = Math.random, map: MapDef = MAPS[
     modifiers,
     clickToMove: opts.clickToMove ?? false,
     heroMoveTarget: null,
+    heroInput: { x: 0, y: 0 },
+    camera: { x: 0.9, y: 0 }, // bắt đầu ngay trên nhân vật ở tâm trận (trong biên camera của mọi bản đồ)
     endlessRecord: opts.endlessRecord ?? 0,
     resources: { linhThach: START_LINH_THACH + modifiers.startLtBonus, tinh },
     towers: new Array(layout.totalSlots).fill(null),

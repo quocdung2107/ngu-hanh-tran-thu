@@ -36,8 +36,8 @@ function hpBar(ctx: Ctx, sx: number, sy: number, w: number, ratio: number, color
   ctx.fillRect(sx - w / 2, sy, w * Math.max(0, Math.min(1, ratio)), 4);
 }
 
-/** Vẽ ảnh sprite nếu manifest có và ảnh đã nạp xong; trả false để renderer rơi về hình khối. */
-function drawSpriteImage(ctx: Ctx, r: ResolvedSprite, sx: number, sy: number, sizeWorld: number): boolean {
+/** Vẽ ảnh sprite nếu manifest có và ảnh đã nạp xong; trả false để renderer rơi về hình khối. (E6: dùng chung với renderer thủ trận.) */
+export function drawSpriteImage(ctx: Ctx, r: ResolvedSprite, sx: number, sy: number, sizeWorld: number): boolean {
   if (r.kind !== 'image' || !r.img) return false;
   const img = r.img;
   if (!img.complete || img.naturalWidth === 0) return false;

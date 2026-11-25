@@ -26,7 +26,7 @@ export const HERO = {
   baseArmor: 3, // E4 cân bằng: giáp cơ bản để nhân vật bớt mong manh ở bản đồ lớn
   baseRegenPerSec: 0.6, // E4: hồi máu cơ bản nhỏ, Mộc cộng thêm
   baseDodge: 0,
-  homeRadius: 6, // không rời trung tâm quá bán kính này
+  // E6: ĐÃ BỎ homeRadius — nhân vật đi tự do toàn bản đồ, chỉ bị kẹp ở biên thế giới.
   manaMax: 100,
   manaStart: 100,
   manaRegenPerSec: 4,
@@ -73,4 +73,11 @@ export const LINH_MACH_MAX = 2;
 export const LINH_MACH_DMG_BONUS = 0.25;
 
 export const TICK_RATE = 20; // sim tick cố định 20Hz
-export const SPAWN_DISTANCE = 7.6;
+
+// E6 — Camera chế độ thủ trận (bản đồ lớn, camera bám nhân vật như Dã Chiến):
+// canvas 760×560, chiếu iso TILE_W=60/TILE_H=30 → khung hình phủ tối đa
+// (760/60 + 560/30) / 2 ≈ 15.7 đơn vị thế giới quanh điểm camera theo mỗi trục.
+// Đích camera được kẹp trong [−(half−margin), +(half−margin)] để không lộ ra ngoài bản đồ.
+export const DEFENSE_CAM_MARGIN = 15.7;
+export const DEFENSE_CAM_LERP = 6; // cùng hệ số bám mượt với camera Dã Chiến
+export const HERO_WORLD_MARGIN = 0.5; // nhân vật bị kẹp cách biên bản đồ bấy nhiêu

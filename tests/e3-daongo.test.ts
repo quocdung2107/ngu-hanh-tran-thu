@@ -125,8 +125,11 @@ describe('E3 — chế độ Vô Tận', () => {
   });
 });
 
-describe('E3 — click để di chuyển nhân vật', () => {
-  it('bật: nhân vật đi về điểm đích kể cả khi không có quái; tắt: đứng yên', () => {
+describe('E3→E6 — di chuyển nhân vật bằng lệnh click', () => {
+  // E6 CẬP NHẬT LUẬT: điều khiển di chuyển được gộp chung như Dã Chiến —
+  // heroMoveTarget luôn được tôn trọng, không còn phụ thuộc công tắc
+  // clickToMove của E3 (công tắc chỉ còn là trường cài đặt tương thích).
+  it('nhân vật đi về điểm đích kể cả khi không có quái, bất kể công tắc E3 bật hay tắt', () => {
     const on = createGame(noRand, undefined, { clickToMove: true });
     on.phase = 'combat';
     on.heroMoveTarget = { x: 4, y: 0 };
@@ -134,19 +137,23 @@ describe('E3 — click để di chuyển nhân vật', () => {
     for (let i = 0; i < 20; i++) updateHero(on, 1 / 20);
     expect(on.hero.x).toBeGreaterThan(x0 + 1);
 
-    const off = createGame(noRand);
+    const off = createGame(noRand); // clickToMove = false (mặc định E3)
     off.phase = 'combat';
-    off.heroMoveTarget = { x: 4, y: 0 }; // có đích nhưng tính năng tắt → bỏ qua
+    off.heroMoveTarget = { x: 4, y: 0 }; // E6: đích vẫn được tôn trọng như Dã Chiến
     const ox = off.hero.x;
     for (let i = 0; i < 20; i++) updateHero(off, 1 / 20);
-    expect(off.hero.x).toBe(ox);
+    expect(off.hero.x).toBeGreaterThan(ox + 1);
   });
 
-  it('điểm đích bị kẹp trong bán kính hoạt động quanh trung tâm', () => {
+  // E6 CẬP NHẬT LUẬT: ĐÃ BỎ bán kính hoạt động 6 quanh tâm — nhân vật đi tự do
+  // toàn bản đồ, chỉ bị kẹp ở BIÊN bản đồ (map 1: cạnh 60 → |tọa độ| ≤ 29.5).
+  it('điểm đích xa: nhân vật ra khỏi bán kính 6 cũ và bị kẹp ở biên bản đồ', () => {
     const s = createGame(noRand, undefined, { clickToMove: true });
     s.phase = 'combat';
-    s.heroMoveTarget = { x: 100, y: 0 }; // đích ngoài bán kính — di chuyển vẫn bị kẹp ở homeRadius
-    for (let i = 0; i < 20 * 10; i++) updateHero(s, 1 / 20);
-    expect(Math.hypot(s.hero.x, s.hero.y)).toBeLessThanOrEqual(6.01);
+    s.heroMoveTarget = { x: 100, y: 0 }; // đích ngoài bản đồ
+    for (let i = 0; i < 20 * 20; i++) updateHero(s, 1 / 20);
+    expect(Math.hypot(s.hero.x, s.hero.y)).toBeGreaterThan(6);
+    expect(s.hero.x).toBeCloseTo(29.5, 0);
+    expect(Math.abs(s.hero.y)).toBeLessThan(0.01);
   });
 });

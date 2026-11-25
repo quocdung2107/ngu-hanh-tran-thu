@@ -1,7 +1,7 @@
-import { SPAWN_DISTANCE } from './balance';
-
 // E2 — Định nghĩa bản đồ: hình học trận (số vòng/số ô/bán kính), số cổng spawn,
 // số lớp HP của trung tâm và hệ số HP quái riêng của bản đồ.
+// E6 — Mỗi bản đồ có thêm worldSize: sân khấu lớn (60/70/80), trận pháp ở tâm
+// thế giới (gốc tọa độ), cổng spawn nằm sát biên bản đồ.
 export interface RingLayoutDef {
   radius: number;
   slots: number;
@@ -14,6 +14,7 @@ export interface MapDef {
   desc: string;
   rings: RingLayoutDef[];
   gates: number;
+  worldSize: number; // E6: cạnh của bản đồ vuông (đơn vị thế giới), tâm ở (0,0)
   waves: number;
   centerLayers: number;   // 1 = chỉ HP chính; 2 = thêm lớp khiên ngoài phải phá trước
   centerShieldHp: number; // HP của lớp khiên (chỉ dùng khi centerLayers = 2)
@@ -30,6 +31,7 @@ export const MAPS: MapDef[] = [
       { radius: 3.8, slots: 5, name: 'Vòng 2 (ngoài)' },
     ],
     gates: 4,
+    worldSize: 60,
     waves: 8,
     centerLayers: 1,
     centerShieldHp: 0,
@@ -45,6 +47,7 @@ export const MAPS: MapDef[] = [
       { radius: 5.4, slots: 6, name: 'Vòng 3' },
     ],
     gates: 6,
+    worldSize: 70,
     waves: 8,
     centerLayers: 1,
     centerShieldHp: 0,
@@ -61,6 +64,7 @@ export const MAPS: MapDef[] = [
       { radius: 6.9, slots: 8, name: 'Vòng 4' },
     ],
     gates: 6,
+    worldSize: 80,
     waves: 8,
     centerLayers: 2,
     centerShieldHp: 400,
@@ -75,11 +79,12 @@ export function mapById(id: string): MapDef {
 const GATE_NAMES_4 = ['Bắc', 'Đông', 'Nam', 'Tây'];
 const GATE_NAMES_6 = ['Bắc', 'Đông Bắc', 'Đông Nam', 'Nam', 'Tây Nam', 'Tây Bắc'];
 
-/** Vị trí các cổng spawn quanh trận, cách đều nhau, bắt đầu từ hướng Bắc. */
+/** E6: cổng spawn nằm sát BIÊN bản đồ (cách tâm worldSize/2 − 0.5), cách đều nhau, bắt đầu từ hướng Bắc. */
 export function gatesOf(map: MapDef): Array<{ x: number; y: number; name: string }> {
   const names = map.gates === 6 ? GATE_NAMES_6 : GATE_NAMES_4;
+  const d = map.worldSize / 2 - 0.5;
   return Array.from({ length: map.gates }, (_, i) => {
     const a = (i / map.gates) * Math.PI * 2 - Math.PI / 2;
-    return { x: Math.cos(a) * SPAWN_DISTANCE, y: Math.sin(a) * SPAWN_DISTANCE, name: names[i] ?? `Cổng ${i + 1}` };
+    return { x: Math.cos(a) * d, y: Math.sin(a) * d, name: names[i] ?? `Cổng ${i + 1}` };
   });
 }

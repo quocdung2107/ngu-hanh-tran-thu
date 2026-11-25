@@ -5,6 +5,7 @@ import { ELEMENTS, type Element } from '../config/balance';
 import {
   FIELD, FIELD_SKILL_BY_ID, packSizeAt, spawnDistance, spawnIntervalAt,
 } from '../config/field';
+import { clampCameraTarget, fieldCameraBounds, stepFollowCamera } from './camera';
 import { dist, type AoeFx, type Floater, type Particle } from './state';
 
 export type FieldPhase = 'running' | 'won' | 'lost';
@@ -115,22 +116,14 @@ export function aliveCount(state: FieldState): number {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-/** Đích camera: nhân vật, kẹp để khung nhìn không vượt biên bản đồ. */
+/** Đích camera: nhân vật, kẹp để khung nhìn không vượt biên bản đồ. (E6: dùng helper chung ở sim/camera.ts) */
 export function cameraTarget(state: FieldState): { x: number; y: number } {
-  return {
-    x: clamp(state.hero.x, FIELD.viewW / 2, FIELD.worldW - FIELD.viewW / 2),
-    y: clamp(state.hero.y, FIELD.viewH / 2, FIELD.worldH - FIELD.viewH / 2),
-  };
+  return clampCameraTarget(state.hero.x, state.hero.y, fieldCameraBounds());
 }
 
-/** Camera bám mượt (lerp) theo nhân vật + kẹp biên. */
+/** Camera bám mượt (lerp) theo nhân vật + kẹp biên. (E6: dùng helper chung ở sim/camera.ts) */
 export function updateCamera(state: FieldState, dt: number): void {
-  const t = cameraTarget(state);
-  const k = Math.min(1, FIELD.cameraLerp * dt);
-  state.camera.x += (t.x - state.camera.x) * k;
-  state.camera.y += (t.y - state.camera.y) * k;
-  state.camera.x = clamp(state.camera.x, FIELD.viewW / 2, FIELD.worldW - FIELD.viewW / 2);
-  state.camera.y = clamp(state.camera.y, FIELD.viewH / 2, FIELD.worldH - FIELD.viewH / 2);
+  stepFollowCamera(state.camera, state.hero.x, state.hero.y, dt, FIELD.cameraLerp, fieldCameraBounds());
 }
 
 /** Điểm (x,y) có nằm ngoài khung nhìn hiện tại không (theo hình chữ nhật thế giới của camera). */
