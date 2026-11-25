@@ -82,6 +82,7 @@ export class SoundEngine {
       case 'destroy': this.tone(210, 55, 0.16, 'sawtooth', 0.11); break;
       case 'upgrade': this.tone(520, 520, 0.07, 'triangle', 0.12); this.tone(780, 780, 0.09, 'triangle', 0.12, 0.07); break;
       case 'skill': this.tone(600, 920, 0.12, 'triangle', 0.11); break;
+      case 'pickup': this.tone(990, 1320, 0.06, 'sine', 0.07); break; // E5: nhặt vật phẩm dã chiến
       case 'waveStart':
         this.tone(330, 330, 0.09, 'square', 0.09);
         this.tone(440, 440, 0.09, 'square', 0.09, 0.1);

@@ -4,6 +4,7 @@ import type { CampaignProgress } from '../persistence';
 
 export interface MenuCallbacks {
   onStart: (mapId: string, endless: boolean) => void;
+  onStartField: () => void; // E5: vào chế độ Dã Chiến
   onBuyNode: (nodeId: string) => void;
   onToggleClickToMove: (enabled: boolean) => void;
 }
@@ -20,6 +21,7 @@ export class Menu {
       const target = ev.target as HTMLElement;
       const start = target.closest('[data-start-map]') as HTMLElement | null;
       if (start && !start.hasAttribute('disabled')) { this.cb.onStart(start.dataset.startMap!, false); return; }
+      if (target.closest('[data-start-field]')) { this.cb.onStartField(); return; }
       const endless = target.closest('[data-start-endless]') as HTMLElement | null;
       if (endless && !endless.hasAttribute('disabled')) { this.cb.onStart(endless.dataset.startEndless!, true); return; }
       const buy = target.closest('[data-buy-node]') as HTMLElement | null;
@@ -58,6 +60,13 @@ export class Menu {
 
     this.el.innerHTML = `
       <div class="menu-card">
+        <h2>🏹 Chế độ Dã Chiến (E5)</h2>
+        <div class="map-card">
+          <h3>🏹 Dã Chiến — Một mình giữa vòng vây</h3>
+          <p>Chế độ chơi riêng, không thay thế thủ trận pháp: bản đồ lớn 80×80, camera bám theo nhân vật, quái cùng kích thước với nhân vật kéo tới thành bầy. Điều khiển trực tiếp bằng WASD/phím mũi tên/click, đạn tỏa nhiều tia, nhặt Linh Thạch + tinh rơi ra trên đất.</p>
+          <p class="dim">Sống sót 5 phút = thắng · HP về 0 = thua · Boss dã chiến ở phút thứ 4</p>
+          <button class="primary" data-start-field>▶ Vào Dã Chiến</button>
+        </div>
         <h2>⚖️ Ngũ Hành Trận Thủ — Chọn bản đồ</h2>
         <p class="dim">Thắng một bản đồ để mở bản đồ kế tiếp và nhận điểm Đạo Ngộ (lần đầu +2, thắng lại +1). Tiến độ lưu trên trình duyệt này.</p>
         <div class="map-list">${cards}</div>

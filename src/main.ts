@@ -1,7 +1,10 @@
 import { HERO, TICK_RATE } from './config/balance';
+import { FIELD, FIELD_SKILLS } from './config/field';
 import { MAPS, mapById } from './config/maps';
 import { render } from './render/renderer';
-import { setOrigin, toWorld } from './render/iso';
+import { renderField, fieldScreenToWorld } from './render/fieldRenderer';
+import { setOrigin, toWorld, TILE_H, TILE_W } from './render/iso';
+import { castFieldSkill, createFieldGame, tickField, type FieldState } from './sim/field';
 import { createGame, slotPos, type GameState } from './sim/state';
 import { tick } from './sim/combat';
 import { buildTower, destroyTowerByPlayer, upgradeTower } from './sim/towers';
@@ -11,6 +14,7 @@ import { applyFormationCode, encodeFormation } from './sim/formationCode';
 import { buyNode, loadProgress, recordEndlessWave, recordMapWin, recordWaveReached, savePreset, storeProgress, type CampaignProgress } from './persistence';
 import { modifiersFromNodes } from './sim/daongo';
 import { Hud } from './ui/hud';
+import { FieldHud } from './ui/fieldHud';
 import { SoundEngine } from './ui/audio';
 import { Menu } from './ui/menu';
 
@@ -29,7 +33,21 @@ let paused = false;
 let speed = 1;
 let winRecorded = false;
 
+// E5 — Chế độ Dã Chiến song song với thủ trận pháp (không thay thế nhau).
+let mode: 'defense' | 'field' = 'defense';
+let field: FieldState = createFieldGame(Math.random);
+const hintEl = document.getElementById('hint')!;
+const HINT_DEFENSE = hintEl.textContent;
+const HINT_FIELD = 'Dã Chiến: WASD / phím mũi tên để chạy, click chuột để ra lệnh di chuyển. Nhân vật tự bắn loạt đạn vào bầy quái — sống sót 5 phút là thắng. Phím 1/2/3 dùng kỹ năng.';
+
+function setModeUi(): void {
+  document.getElementById('side')!.style.display = mode === 'defense' ? '' : 'none';
+  document.getElementById('field-side')!.style.display = mode === 'field' ? 'flex' : 'none';
+  hintEl.textContent = mode === 'field' ? HINT_FIELD : HINT_DEFENSE;
+}
+
 function startRun(mapId: string, endless = false): void {
+  mode = 'defense';
   state = createGame(Math.random, mapById(mapId), {
     endless,
     modifiers: modifiersFromNodes(progress.ownedNodes),
@@ -39,11 +57,21 @@ function startRun(mapId: string, endless = false): void {
   winRecorded = false;
   hud.selectedSlot = -1;
   menu.hide();
+  setModeUi();
   hud.update(state);
+}
+
+function startFieldRun(): void {
+  mode = 'field';
+  field = createFieldGame(Math.random);
+  menu.hide();
+  setModeUi();
+  fieldHud.update(field);
 }
 
 const menu = new Menu({
   onStart: (mapId, endless) => startRun(mapId, endless),
+  onStartField: () => startFieldRun(),
   onBuyNode: (nodeId) => {
     const result = buyNode(progress, nodeId);
     if (result.ok) { progress = result.progress; storeProgress(progress); }
@@ -76,6 +104,36 @@ const hud = new Hud({
   },
 });
 
+const fieldHud = new FieldHud({
+  onCastSkill: (skillId) => { castFieldSkill(field, skillId); fieldHud.update(field); },
+  onRestart: () => { startFieldRun(); },
+});
+
+// E5: phím di chuyển (WASD/mũi tên) + phím kỹ năng 1/2/3 cho Dã Chiến
+const keysDown = new Set<string>();
+window.addEventListener('keydown', (ev) => {
+  if (mode !== 'field') return;
+  if (ev.code.startsWith('Arrow')) ev.preventDefault();
+  keysDown.add(ev.code);
+  const idx = ['Digit1', 'Digit2', 'Digit3'].indexOf(ev.code);
+  if (idx >= 0 && FIELD_SKILLS[idx]) castFieldSkill(field, FIELD_SKILLS[idx].id);
+});
+window.addEventListener('keyup', (ev) => { keysDown.delete(ev.code); });
+window.addEventListener('blur', () => keysDown.clear());
+
+/** Đổi hướng phím (không gian màn hình) sang hướng thế giới isometric. */
+function keysToWorldInput(): { x: number; y: number } {
+  let sx = 0, sy = 0;
+  if (keysDown.has('KeyW') || keysDown.has('ArrowUp')) sy -= 1;
+  if (keysDown.has('KeyS') || keysDown.has('ArrowDown')) sy += 1;
+  if (keysDown.has('KeyA') || keysDown.has('ArrowLeft')) sx -= 1;
+  if (keysDown.has('KeyD') || keysDown.has('ArrowRight')) sx += 1;
+  return {
+    x: sx / (TILE_W / 2) + sy / (TILE_H / 2),
+    y: sy / (TILE_H / 2) - sx / (TILE_W / 2),
+  };
+}
+
 function storeAndReturn(p: CampaignProgress): CampaignProgress {
   storeProgress(p);
   return p;
@@ -106,6 +164,16 @@ canvas.addEventListener('click', (ev) => {
   const rect = canvas.getBoundingClientRect();
   const sx = (ev.clientX - rect.left) * (canvas.width / rect.width);
   const sy = (ev.clientY - rect.top) * (canvas.height / rect.height);
+  if (mode === 'field') {
+    // E5: click = ra lệnh di chuyển tới điểm đó (kẹp trong bản đồ)
+    const w = fieldScreenToWorld(canvas, field.camera, sx, sy);
+    const m = 0.5;
+    field.hero.moveTarget = {
+      x: Math.min(FIELD.worldW - m, Math.max(m, w.x)),
+      y: Math.min(FIELD.worldH - m, Math.max(m, w.y)),
+    };
+    return;
+  }
   const w = toWorld(sx, sy);
   let best = -1; let bestD = 0.65;
   for (let i = 0; i < state.towers.length; i++) {
@@ -162,16 +230,27 @@ let last = performance.now();
 function frame(now: number): void {
   const dtReal = Math.min(0.1, (now - last) / 1000);
   last = now;
+  if (mode === 'field') field.hero.input = keysToWorldInput();
   if (!paused) {
     acc += dtReal * speed;
     const step = 1 / TICK_RATE;
-    while (acc >= step) { tick(state, step); acc -= step; }
+    while (acc >= step) {
+      if (mode === 'field') tickField(field, step); else tick(state, step);
+      acc -= step;
+    }
   }
-  trackProgress();
-  for (const key of state.sounds) sound.play(key);
-  state.sounds.length = 0;
-  render(ctx, state, hud.selectedSlot);
-  hud.update(state);
+  if (mode === 'field') {
+    for (const key of field.sounds) sound.play(key);
+    field.sounds.length = 0;
+    renderField(ctx, field);
+    fieldHud.update(field);
+  } else {
+    trackProgress();
+    for (const key of state.sounds) sound.play(key);
+    state.sounds.length = 0;
+    render(ctx, state, hud.selectedSlot);
+    hud.update(state);
+  }
   requestAnimationFrame(frame);
 }
 menu.show(progress);

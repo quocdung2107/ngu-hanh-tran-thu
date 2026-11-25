@@ -8,6 +8,11 @@ main { display: flex; gap: 12px; padding: 12px; align-items: flex-start; }
 #stage { position: relative; }
 canvas { background: #0b111c; border: 1px solid #2b4258; border-radius: 8px; max-width: 100%; }
 #side { width: 350px; display: flex; flex-direction: column; gap: 10px; }
+#field-side { width: 350px; flex-direction: column; gap: 10px; }
+#field-side .panel button { display: block; width: 100%; text-align: left; margin: 5px 0; padding: 7px 9px; border-radius: 6px; border: 1px solid #3a5a7d; background: #1a2c44; color: #e6eef7; cursor: pointer; font-size: 13px; }
+#field-side .panel button small { display: block; color: #9db8d2; }
+#field-side .panel button:hover:not(:disabled) { background: #24405f; }
+#field-side .panel button:disabled { opacity: 0.45; cursor: not-allowed; }
 .panel { background: #111c2b; border: 1px solid #2b4258; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; line-height: 1.55; }
 .panel h3 { margin: 0 0 6px; font-size: 15px; color: #ffd94a; }
 .panel button { display: block; width: 100%; text-align: left; margin: 5px 0; padding: 7px 9px; border-radius: 6px; border: 1px solid #3a5a7d; background: #1a2c44; color: #e6eef7; cursor: pointer; font-size: 13px; }
